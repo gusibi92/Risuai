@@ -1,0 +1,21 @@
+<article class="chat-message chat-message--ebook-theme">
+    <header class="chat-message__header">
+        <div class="chat-message__author">
+            <figure class="chat-message__avatar">
+                <risuicon></risuicon>
+            </figure>
+            <h1 class="chat-message__author-name">
+                {{#when::{{role}}::is::char}}{{char}}{{:else}}{{user}}{{/when}}
+            </h1>
+        </div>
+
+        <nav class="chat-message__toolbar" aria-label="Message actions">
+            <risugeninfo></risugeninfo>
+            <risubuttons></risubuttons>
+        </nav>
+    </header>
+
+    <div class="chat-message__body">
+        <risutextbox></risutextbox>
+    </div>
+</article>

@@ -1,0 +1,38 @@
+<div class="modern-browser {{#if {{not_equal::{{role}}::char}}}}user-message{{/if}}">
+    <!-- 메인 컨텐츠 -->
+    <div class="browser-main">
+        <!-- 사이드바 -->
+        <aside class="browser-sidebar">
+            <div class="sidebar-header">Profile</div>
+            <div class="sidebar-profile">
+                <div class="profile-image-wrapper">
+                    <risuicon></risuicon>
+                </div>
+                <div class="profile-name">
+                    {{#if {{equal::{{role}}::char}}}}{{char}}{{/if}}
+                    {{#if {{not_equal::{{role}}::char}}}}{{user}}{{/if}}
+                </div>
+            </div>
+        </aside>
+
+        <!-- 브라우저 뷰 -->
+        <main class="browser-view">
+            <div class="page-content">
+                <risutextbox></risutextbox>
+            </div>
+        </main>
+    </div>
+
+    <!-- 상태바 -->
+    <div class="browser-statusbar">
+        <div class="status-left">
+            <div class="status-item">
+                <risugeninfo></risugeninfo>
+            </div>
+        </div>
+        <div class="status-right">
+            <risubuttons></risubuttons>
+        </div>
+    </div>
+
+</div>

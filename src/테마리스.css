@@ -1,0 +1,1973 @@
+/*
+ * ============================================================================
+ * RisuAI Ebook Theme
+ * ============================================================================
+ *
+ * DESIGN PHILOSOPHY
+ * -----------------
+ * An ebook-inspired dark theme optimized for long-form reading.
+ *
+ * - Serif body text (RIDIBatang) for comfortable extended reading
+ * - Monospace character names for clear speaker identification
+ * - Sans-serif headings (Noto Sans KR) for visual hierarchy
+ * - Subtle hover interactions that don't distract from content
+ * - High contrast with muted accents to reduce eye strain
+ *
+ * TOKEN ARCHITECTURE
+ * ------------------
+ * Three-tier design token system for maintainability:
+ *
+ * 1. Primitives (:root)
+ *    Raw values with no semantic meaning. Never use directly in components.
+ *    - --primitive-*  : Base colors, font stacks
+ *    - --scale-*      : Ratio multipliers (minor third ~1.2 scale)
+ *    - --space-*      : Spacing (4→6→8→12→15→20→25→30, ~1.5x progression)
+ *
+ * 2. Semantics (.chat-message--ebook-theme)
+ *    Contextual tokens that reference primitives.
+ *    - --font-*       : Purpose-specific fonts (body, heading, code)
+ *    - --color-*      : Semantic colors (primary, link, quote)
+ *    - --surface-*    : Background/foreground pairs
+ *    - --trans-*      : Pre-composed transitions
+ *
+ * 3. Component-local
+ *    Calculated values scoped to specific components.
+ *    Used inline where extraction adds no value.
+ *
+ * FILE STRUCTURE
+ * --------------
+ *   1. FONTS       - Web font imports (@font-face, @import)
+ *   2. TOKENS      - Primitive design tokens (:root)
+ *   3. THEME       - Semantic tokens (.chat-message--ebook-theme)
+ *   4. GLOBAL      - Reduced motion, base resets
+ *   5. COMPONENTS  - Container, Header, Body
+ *   6. CONTENT     - Typography, Block elements, Syntax highlighting
+ *   7. OVERRIDES   - RisuAI-specific layout fixes
+ *   8. INPUT AREA  - Bottom input controls
+ *
+ * CUSTOMIZATION GUIDE
+ * --------------------
+ * Safe to modify (in :root):
+ *   --primitive-font-size    : Base text size (default: 21px)
+ *   --primitive-line-height  : Line spacing (default: 2.3)
+ *   --primitive-primary      : Accent color (default: gold #dcc177)
+ *   --space-*                : Spacing scale (8 values)
+ *   --hover-*                : Interaction intensity
+ *   --input-*                : Input area dimensions and padding
+ *   --avatar-size            : Profile image size (default: 30px)
+ *   --max-width              : Reading column width (default: 600px)
+ *   --bg-dim-opacity         : Background darkening (0-1)
+ *
+ * Modify with caution (in .chat-message--ebook-theme):
+ *   --font-*                 : Font family assignments
+ *   --color-*                : Semantic colors (derived from primitives)
+ *   --alpha-*                : Transparency levels
+ *
+ * Do not modify (structural):
+ *   Component selectors, !important declarations, RisuAI overrides
+ *
+ * RISUAI DEPENDENCY WARNING
+ * -------------------------
+ * Selectors in OVERRIDES and INPUT AREA target RisuAI's internal class names.
+ * These may break when RisuAI updates. Fragile selectors are marked with:
+ *   RISUAI-DEPENDENT: [description]
+ *
+ * BROWSER SUPPORT
+ * ---------------
+ * Requires modern CSS features:
+ *   - color-mix(), rgb(from ...)
+ *   - Logical properties (inline-size, margin-block)
+ *   - CSS nesting (&)
+ *
+ * Note: @layer is NOT supported in RisuAI's environment.
+ *
+ * ============================================================================
+ */
+
+/* =========================================================================
+   FONTS
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@700;900&display=swap');
+
+@font-face {
+    font-family: 'RIDIBatang';
+    font-display: swap;
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_twelve@1.0/RIDIBatang.woff') format('woff');
+}
+
+@font-face {
+    font-family: 'D2Coding';
+    font-display: swap;
+    src: url('https://cdn.jsdelivr.net/gh/joungkyun/font-d2coding-ligature@master/D2Coding-ligature.woff2') format('woff2'),
+        url('https://cdn.jsdelivr.net/gh/joungkyun/font-d2coding-ligature@master/D2Coding-ligature.woff') format('woff');
+}
+
+/* =========================================================================
+      TOKENS - Primitive design tokens
+      ========================================================================== */
+
+:root {
+    /* Font stacks - ordered by preference with system fallbacks */
+    --primitive-mono: 'D2Coding', 'Consolas', 'Monaco', 'Courier New', monospace;
+    --primitive-sans: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --primitive-serif: 'RIDIBatang', serif;
+    --primitive-system: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+    /* Colors - inherit from RisuAI theme when available, fallback to defaults */
+    --primitive-primary: var(--risu-theme-borderc, #dcc177);
+    --primitive-link: var(--risu-theme-link, #5dade2);
+    --primitive-quote1: var(--FontColorQuote1, #5dade2);
+    /* Character dialogue */
+    --primitive-quote2: var(--FontColorQuote2, #52c97f);
+    /* Narrator/action text */
+    --primitive-code: var(--risu-theme-draculared, #e74c3c);
+
+    /* Typography - inherits from RisuAI settings (채팅 텍스트 크기, 줄간격 sliders) */
+    --primitive-font-size: inherit;
+    --primitive-line-height: inherit;
+    --primitive-letter-spacing: 0.04em;
+    /* Slight tracking improves serif readability */
+
+    /* Scale ratios - Minor third (~1.2) for gentle typographic hierarchy
+        * Calculated: 1/1.2³, 1/1.2², 1/1.2, 1.2, 1.2², 1.2³, 1.2⁴
+        * Rounded for cleaner pixel values */
+    --scale-down-3: 0.48;
+    /* ~10px at 21px base - mini text */
+    --scale-down-2: 0.64;
+    /* ~13px at 21px base - small text */
+    --scale-down-1: 0.79;
+    /* ~17px at 21px base - secondary text */
+    --scale-up-1: 1.05;
+    /* ~22px at 21px base - h4 */
+    --scale-up-2: 1.12;
+    /* ~24px at 21px base - h3 */
+    --scale-up-3: 1.20;
+    /* ~25px at 21px base - h2 */
+    --scale-up-4: 1.32;
+    /* ~28px at 21px base - h1 */
+    --scale-container: 0.68;
+    /* Container font vs body (smaller) */
+    --scale-edit: 0.74;
+    /* Edit textarea vs body (slightly smaller) */
+    --scale-nested-code: 0.8;
+    /* Code inside details/tables (relative) */
+
+    /* Spacing scale - ~1.5x progression, not strictly geometric
+        * Intentionally irregular: 15px instead of 16px avoids "grid-lock" look
+        * 4 → 6 → 8 → 12 → 15 → 20 → 25 → 30 */
+    --space-2xs: 4px;
+    /* Tight: inline padding, small gaps */
+    --space-xs: 6px;
+    /* Compact: icon margins */
+    --space-sm: 8px;
+    /* Default: list item spacing */
+    --space-md: 12px;
+    /* Comfortable: section padding */
+    --space-lg: 15px;
+    /* Relaxed: card padding */
+    --space-xl: 20px;
+    /* Spacious: major sections */
+    --space-2xl: 25px;
+    /* Generous: paragraph breaks */
+    --space-3xl: 30px;
+    /* Maximum: hr margins */
+
+    /* Heading margins - descending scale for visual hierarchy
+        * Pattern: larger headings get more space above */
+    --heading-margin-h1: 35px 20px;
+    --heading-margin-h2: 28px 16px;
+    --heading-margin-h3: 24px 14px;
+    --heading-margin-h4: 22px 12px;
+    --heading-margin-h5: 20px 10px;
+    --heading-margin-h6: 18px 10px;
+
+    /* Component padding (customizable)
+        * Block: blockquote, pre, details, quote marks
+        * Table: th, td cells
+        * Kbd: keyboard key styling */
+    --block-padding-block: 4px;
+    --block-padding-inline: 16px;
+    --table-padding-block: 8px;
+    --table-padding-inline: 10px;
+    --kbd-padding-block: 2px;
+    --kbd-padding-inline: 10px;
+
+    /* Hover effects - subtle feedback without distraction
+        * Philosophy: interactions should feel responsive but not flashy
+        *
+        * HOVER PATTERNS (how these combine):
+        * ┌─────────────────┬────────────────────────────────────────┐
+        * │ Pattern         │ Effect                                 │
+        * ├─────────────────┼────────────────────────────────────────┤
+        * │ Text hover      │ bg subtle + padding-inline-start       │
+        * │ Block hover     │ bg subtle + translateX(shift-x)        │
+        * │ Button hover    │ scale + opacity + color                │
+        * │ Kbd/code hover  │ scale-weak + bg + shadow               │
+        * └─────────────────┴────────────────────────────────────────┘
+        */
+    --hover-shift-x: 12px;
+    /* Horizontal slide for block elements */
+    --hover-shift-y: -4px;
+    /* Upward lift for buttons/kbd */
+    --hover-shift-y-sm: -2px;
+    /* Subtle lift for secondary UI */
+    --hover-lift-input: -16px;
+    /* Input area lift on hover (negative = up) */
+    --hover-padding: 12px;
+    /* Indent on text hover */
+    --hover-padding-sm: 4px;
+    /* Subtle indent for compact UI */
+    --hover-scale-weak: 1.05;
+    /* Subtle: inline code */
+    --hover-scale-normal: 1.08;
+    /* Standard: buttons */
+    --hover-scale-strong: 1.25;
+    /* Emphasized: toolbar icons */
+    --hover-scale-pressed: 0.95;
+    /* Active/pressed state */
+    --hover-opacity: 0.8;
+    /* Dimming for secondary elements */
+
+    /* Border & radius */
+    --radius: 6px;
+    --radius-sm: 4px;
+    --radius-lg: 8px;
+    --border-thin: 1px;
+    --border-medium: 2px;
+    --border-emphasis: 4px;
+
+    /* Z-index scale - layered UI stacking
+        * 10: sticky headers, toolbars
+        * 20-30: overlays, dropdowns
+        * 100: modals, expanded elements */
+    --z-header: 10;
+    --z-overlay: 28;
+    --z-modal: 100;
+
+    /* Focus & accessibility */
+    --focus-offset: 2px;
+    /* Focus ring offset from element */
+    --focus-offset-lg: 4px;
+    /* Larger offset for inline elements */
+
+    /* Link underline */
+    --underline-thickness: 1px;
+    --underline-thickness-hover: 2px;
+    --underline-offset: 2px;
+    --underline-offset-hover: 4px;
+
+    /* Dimensions */
+    --avatar-size: 36px;
+    --avatar-hover-scale-full: 4.17;
+    /* 36px × 4.17 ≈ 150px - fits most character portraits */
+    --avatar-hover-scale-subtle: 1.25;
+    /* Header hover - slight enlargement */
+    --icon-size: 18px;
+    --header-padding-block: 10px;
+    /* Header vertical padding */
+    --input-padding-block: 14px;
+    /* Input textarea vertical padding */
+    --input-tail-extend: 20px;
+    /* Input area backdrop tail extension */
+    --input-area-gap: 58px;
+    /* Translation input sticky bottom offset */
+    --chat-gap: 2px;
+    /* Gap between chat messages */
+    --chat-input-gap: 1px;
+    /* Gap between chat area and input area */
+    --scrollbar-width: 6px;
+    --scrollbar-width-chat: 16px;
+    --scrollbar-thumb-min-height: 60px;
+    --max-width: 85%;
+    /* Optimal reading width for mixed Korean/English */
+
+    /* Max heights - viewport-relative limits */
+    --max-height-input: 30vh;
+    /* Input textareas - 30% viewport */
+    --max-height-edit: 70vh;
+    /* Edit mode textarea - more room */
+    --max-height-panel: 30vh;
+    /* Modals and panels */
+
+    /* Min heights - layout stability */
+    --min-height-message: 250px;
+    /* Prevents shift during streaming */
+
+    /* Image dimensions - collapsed/expanded states */
+    --img-collapsed-height: 250px;
+    /* Compact preview */
+    --img-expanded-height: 1600px;
+    /* Full expansion (capped) */
+    --img-expanded-vh: 150vh;
+    /* Viewport-relative expansion */
+    --img-width: 80%;
+    /* Default image width */
+    --img-hover-width: 65%;
+    /* Narrower on hover (zoom illusion) */
+
+    /* Effects */
+    --blur-header: 10px;
+    /* Header backdrop blur amount */
+
+    /* Background dim overlay (0 = none, 0.8 = 80% dark, 1 = full black) */
+    --bg-dim-opacity: 0.3;
+}
+
+/* =========================================================================
+      THEME - Semantic tokens
+      ========================================================================== */
+
+.chat-message--ebook-theme {
+    /* Font families */
+    --font-char: var(--primitive-mono);
+    --font-heading: var(--primitive-sans);
+    --font-body: var(--primitive-serif);
+    --font-quote: var(--primitive-sans);
+    --font-code: var(--primitive-mono);
+    --font-ui: var(--primitive-mono);
+    --font-system: var(--primitive-system);
+
+    /* RisuAI integration */
+    --risu-text: var(--FontColorStandard, #f5f5f5);
+    --risu-text-alt: var(--FontColorStandard, #e8e8e8);
+    --risu-bg: var(--risu-theme-bgcolor, #1a1a1a);
+
+    /* Blend ratios - controls how much theme colors mix with text color
+        * 70% preserves color identity while ensuring WCAG contrast */
+    --blend-base: 70%;
+
+    /* Alpha scale - transparency levels for layered surfaces
+        * Used with rgb(from ... / alpha) for consistent overlays */
+    --alpha-subtle: 0.1;
+    /* Barely visible: hover backgrounds */
+    --alpha-medium: 0.15;
+    /* Noticeable: interactive elements */
+    --alpha-strong: 0.2;
+    /* Prominent: borders, active states */
+
+    /* Surface colors */
+    --surface: var(--risu-bg);
+    --surface-variant: color-mix(in srgb, var(--risu-text) 8%, var(--risu-bg));
+    --surface-elevated: rgb(from var(--risu-text-alt) r g b / var(--alpha-medium));
+    --outline: var(--risu-theme-darkborderc, #404040);
+    --outline-variant: var(--risu-theme-borderc, #525252);
+    --on-surface: var(--risu-text);
+    --on-surface-variant: var(--FontColorStandard, #a3a3a3);
+
+    /* Primary palette */
+    --color-primary: color-mix(in srgb, var(--primitive-primary) var(--blend-base), var(--risu-text));
+    --color-primary-light: color-mix(in srgb, var(--color-primary), white 20%);
+    --color-primary-dim: color-mix(in srgb, var(--color-primary), var(--risu-bg) 50%);
+
+    /* Feature colors */
+    --color-link: color-mix(in srgb, var(--primitive-link) var(--blend-base), var(--risu-text));
+    --color-link-hover: color-mix(in srgb, var(--color-link), white 20%);
+    --color-quote1: color-mix(in srgb, var(--primitive-quote1) var(--blend-base), var(--risu-text));
+    --color-quote2: color-mix(in srgb, var(--primitive-quote2) var(--blend-base), var(--risu-text));
+    --color-code: color-mix(in srgb, var(--primitive-code) var(--blend-base), var(--risu-text));
+
+    /* Interactive states */
+    --code-bg: rgb(from var(--risu-text-alt) r g b / var(--alpha-subtle));
+    --interactive: rgb(from var(--risu-text-alt) r g b / var(--alpha-medium));
+    --interactive-border: rgb(from var(--risu-text-alt) r g b / var(--alpha-strong));
+    --interactive-subtle: rgb(from var(--risu-text-alt) r g b / var(--alpha-subtle));
+
+    /* Font sizes */
+    --font-size-body: var(--primitive-font-size);
+    --font-size-secondary: calc(var(--primitive-font-size) * var(--scale-down-1));
+    --font-size-small: calc(var(--primitive-font-size) * var(--scale-down-2));
+    --font-size-mini: calc(var(--primitive-font-size) * var(--scale-down-3));
+    --font-size-edit: calc(var(--primitive-font-size) * var(--scale-edit));
+
+    /* Line heights */
+    --line-height-relaxed: var(--primitive-line-height);
+    --line-height-normal: 1.8;
+    --line-height-tight: 1.5;
+
+    /* Letter spacing */
+    --letter-spacing-body: var(--primitive-letter-spacing);
+    --letter-spacing-heading: 0.05em;
+
+    /* Responsive spacing */
+    --clamp-xs: clamp(2px, 1vw, 0.5rem);
+    /* Minimal responsive padding */
+    --clamp-sm: clamp(4px, 1vw, 15px);
+    --clamp-md: clamp(5px, 2vw, 30px);
+
+    /* Animation - synced with RisuAI's animation speed setting
+        * Multipliers create consistent timing relationships */
+    --anim-base: var(--risu-animation-speed, 50ms);
+    /* RisuAI user preference */
+    --anim-fast: calc(var(--anim-base) * 3);
+    /* 150ms - quick feedback */
+    --anim-normal: calc(var(--anim-base) * 5);
+    /* 250ms - standard transitions */
+    --anim-slow: calc(var(--anim-base) * 8);
+    /* 400ms - deliberate animations */
+
+    /* Transitions - single property */
+    --trans-color: color var(--anim-normal) ease;
+    --trans-bg: background var(--anim-normal) ease;
+    --trans-border: border-color var(--anim-normal) ease;
+    --trans-transform: transform var(--anim-fast) ease;
+    --trans-shadow: box-shadow var(--anim-normal) ease;
+    --trans-opacity: opacity var(--anim-fast) ease;
+
+    /* Transitions - common patterns (DRY)
+        * These combine frequently co-occurring transitions */
+    --trans-interactive: var(--trans-transform), var(--trans-color), var(--trans-opacity);
+    --trans-block-hover: var(--trans-bg), var(--trans-border), var(--trans-transform);
+    --trans-text-hover: var(--trans-bg), padding-inline-start var(--anim-fast) ease;
+    --trans-fade-lift: var(--trans-opacity), var(--trans-transform);
+    --trans-code-hover: var(--trans-bg), var(--trans-color), var(--trans-transform), var(--trans-shadow);
+    --trans-kbd-hover: var(--trans-bg), var(--trans-border), var(--trans-color), var(--trans-transform);
+    --trans-size: inline-size var(--anim-normal) ease, block-size var(--anim-normal) ease;
+
+    /* Shadows */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.15);
+    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.1);
+    /* Subtle hover lift */
+    --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.2);
+    --shadow-xl: 0 8px 20px rgba(0, 0, 0, 0.25);
+
+    /* Gradients */
+    --gradient-highlight: linear-gradient(180deg, transparent 60%, var(--color-primary-dim) 60%);
+    --gradient-hr: linear-gradient(90deg, transparent, var(--color-primary), transparent);
+
+    /* Syntax highlighting */
+    --syntax-string: color-mix(in srgb, #98c379 60%, var(--risu-text) 40%);
+    --syntax-keyword: color-mix(in srgb, #c678dd 60%, var(--risu-text) 40%);
+    --syntax-function: color-mix(in srgb, #61afef 60%, var(--risu-text) 40%);
+    --syntax-builtin: color-mix(in srgb, #e6c07b 60%, var(--risu-text) 40%);
+    --syntax-number: color-mix(in srgb, #d19a66 60%, var(--risu-text) 40%);
+    --syntax-subst: color-mix(in srgb, #e06c75 60%, var(--risu-text) 40%);
+}
+
+/* =========================================================================
+      GLOBAL - Reduced motion & base resets
+      ========================================================================== */
+
+/* Reduced motion - respects user's system preference
+    * !important required: must override ALL animations/transitions
+    * regardless of specificity, per WCAG 2.1 SC 2.3.3 guidelines
+    * Using 0.01ms instead of 0 to avoid "flash of unstyled content" */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+:is(html, body) {
+    overflow-x: hidden;
+}
+
+body {
+    overscroll-behavior-y: contain;
+}
+
+/* Global scrollbar styling */
+::-webkit-scrollbar {
+    inline-size: var(--scrollbar-width);
+    block-size: var(--scrollbar-width);
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background-clip: padding-box;
+    border-radius: var(--radius-lg);
+}
+
+/* Focus-visible styles for keyboard navigation
+    * Only shows focus ring when using keyboard, not mouse clicks */
+:focus-visible {
+    outline: 2px solid var(--risu-text);
+    outline-offset: var(--focus-offset);
+}
+
+/* High contrast mode support
+    * Ensures borders and focus indicators remain visible */
+@media (forced-colors: active) {
+    .chat-message--ebook-theme {
+        border: 1px solid CanvasText;
+    }
+
+    .chat-message__header {
+        border-block-end: 1px solid CanvasText;
+    }
+
+    :focus-visible {
+        outline: 3px solid Highlight;
+    }
+}
+
+/* =========================================================================
+      COMPONENTS - Container
+      ========================================================================== */
+
+.chat-message--ebook-theme {
+    container-type: inline-size;
+    container-name: chat-message;
+    view-transition-name: chat-message;
+
+    display: flex;
+    flex-direction: column;
+    /* Minimum height prevents layout shift during message streaming */
+    min-block-size: var(--min-height-message);
+    margin-block: 0 var(--chat-gap);
+
+    background: var(--surface);
+    border: var(--border-thin) solid var(--risu-theme-darkborderc);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    transition: border-color var(--anim-normal) ease;
+
+    &:hover {
+        border-color: var(--primitive-primary);
+    }
+
+    font-family: var(--font-body);
+    /* Container font-size is smaller than body content
+        * Body content uses --font-size-body which is full --primitive-font-size
+        * This creates proper hierarchy: container < body text */
+    font-size: calc(var(--primitive-font-size) * var(--scale-container));
+    letter-spacing: var(--letter-spacing-body);
+
+    /* Performance: limit layout/paint calculations to this container */
+    contain: layout style paint;
+    /* Performance: skip rendering off-screen messages */
+    content-visibility: auto;
+
+    /* Scrollbar */
+    &::-webkit-scrollbar {
+        inline-size: var(--scrollbar-width);
+    }
+
+    &::-webkit-scrollbar-track {
+        background: var(--surface-variant);
+        border-radius: var(--radius);
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-clip: padding-box;
+        border-radius: var(--radius-lg);
+    }
+}
+
+/* =========================================================================
+      COMPONENTS - Header
+      ========================================================================== */
+
+/* --- Header container --- */
+.chat-message__header {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: var(--z-header);
+    display: flex;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--header-padding-block) var(--space-lg);
+    background: color-mix(in srgb, var(--risu-theme-bgcolor) 65%, transparent);
+    border-block-end: var(--border-thin) solid var(--outline);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    backdrop-filter: blur(var(--blur-header));
+    -webkit-backdrop-filter: blur(var(--blur-header));
+    transition: var(--trans-shadow), var(--trans-border), padding var(--anim-normal) ease;
+
+    &:hover {
+        padding-block-start: var(--space-md);
+        border-color: var(--primitive-primary);
+        box-shadow: var(--shadow-lg);
+    }
+
+    :is(button[class*="button-icon-"], .flex-col.items-end button) {
+        transition: var(--trans-interactive);
+
+        &:hover {
+            transform: scale(var(--hover-scale-strong));
+            opacity: var(--hover-opacity);
+            color: var(--color-primary);
+        }
+
+        & svg {
+            inline-size: var(--icon-size);
+            block-size: var(--icon-size);
+            stroke: currentColor;
+            transition: var(--trans-size);
+        }
+    }
+
+    & .toolbar-btn {
+        padding: var(--space-2xs);
+        white-space: nowrap;
+        background: var(--interactive);
+        border: var(--border-thin) solid var(--interactive-border);
+        border-radius: var(--radius);
+        font-family: var(--font-system);
+        font-size: var(--font-size-mini);
+        color: var(--on-surface-variant);
+        cursor: pointer;
+        user-select: none;
+        transition: var(--trans-interactive);
+
+        &:hover {
+            transform: scale(var(--hover-scale-strong));
+            opacity: var(--hover-opacity);
+            color: var(--color-primary);
+        }
+    }
+}
+
+/* --- Author container --- */
+.chat-message__author {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+}
+
+/* --- Toolbar (action buttons) --- */
+.chat-message__toolbar {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: center;
+
+    &>.flex.flex-col.items-end {
+        flex-direction: row;
+        gap: var(--space-sm);
+
+        & button {
+            margin: 0;
+            padding: 0;
+
+            & span {
+                display: none;
+            }
+        }
+    }
+
+    &>.grow {
+        flex-grow: 0;
+        margin: 0;
+
+        & .ml-2,
+        & .mr-2,
+        & .mx-2 {
+            margin: 0;
+        }
+
+        &>* {
+            margin: 0;
+        }
+
+        /* Active icon uses theme color instead of blue */
+        & button.text-blue-400,
+        & button.text-blue-500 {
+            color: var(--color-primary);
+        }
+    }
+
+    & button svg {
+        inline-size: var(--icon-size);
+        block-size: var(--icon-size);
+    }
+}
+
+/* --- Author name --- */
+.chat-message__author-name {
+    margin: 0;
+    overflow: hidden;
+    font-family: var(--font-char);
+    font-size: var(--font-size-secondary);
+    font-weight: normal;
+    line-height: 1;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: var(--on-surface);
+    cursor: pointer;
+    transition: var(--trans-interactive), padding-inline-start var(--anim-fast) ease, padding-inline-end var(--anim-fast) ease;
+
+    &:hover {
+        padding-inline-start: var(--hover-padding-sm);
+        padding-inline-end: var(--hover-padding-sm);
+        transform: scale(var(--hover-scale-normal));
+        opacity: var(--hover-opacity);
+        color: var(--color-primary);
+    }
+}
+
+/* --- Avatar --- */
+.chat-message__avatar {
+    position: relative;
+    display: flex;
+    flex-shrink: 0;
+    align-items: flex-start;
+    justify-content: flex-start;
+    inline-size: var(--avatar-size);
+    block-size: var(--avatar-size);
+    margin-inline-end: var(--space-md);
+    overflow: visible;
+    border-radius: 50%;
+    cursor: pointer;
+    /* Expand from top-left so enlarged avatar grows down-right,
+        * not covering the header or going off-screen */
+    transform-origin: left top;
+    transition: transform var(--anim-normal) ease, var(--trans-shadow), border-radius var(--anim-normal) ease, var(--trans-size), margin-inline-end var(--anim-normal) ease;
+
+    &:hover {
+        transform: scale(var(--avatar-hover-scale-full));
+        border-radius: var(--radius);
+        background: var(--risu-theme-bgcolor);
+        box-shadow: var(--shadow-xl);
+        z-index: var(--z-modal);
+    }
+
+    .chat-message__header:hover & {
+        inline-size: calc(var(--avatar-size) * var(--avatar-hover-scale-subtle));
+        block-size: calc(var(--avatar-size) * var(--avatar-hover-scale-subtle));
+        margin-inline-end: var(--space-lg);
+        border-radius: var(--radius);
+    }
+
+    /* Avatar image/element sizing
+        * !important needed: RisuAI applies inline styles on avatar images
+        * min/max required: RisuAI sets min-width which overrides inline-size */
+    &>* {
+        position: relative !important;
+        inline-size: var(--avatar-size) !important;
+        min-inline-size: var(--avatar-size) !important;
+        max-inline-size: var(--avatar-size) !important;
+        block-size: var(--avatar-size) !important;
+        border-radius: inherit !important;
+        object-fit: cover !important;
+        transition: var(--trans-size), min-inline-size var(--anim-normal) ease, max-inline-size var(--anim-normal) ease, border-radius var(--anim-normal) ease;
+    }
+
+    .chat-message__header:hover &>* {
+        inline-size: calc(var(--avatar-size) * var(--avatar-hover-scale-subtle)) !important;
+        min-inline-size: calc(var(--avatar-size) * var(--avatar-hover-scale-subtle)) !important;
+        max-inline-size: calc(var(--avatar-size) * var(--avatar-hover-scale-subtle)) !important;
+        block-size: calc(var(--avatar-size) * var(--avatar-hover-scale-subtle)) !important;
+    }
+
+    /* Full-size preview on direct avatar hover */
+    &:hover>* {
+        inline-size: auto !important;
+        min-inline-size: 0 !important;
+        max-inline-size: none !important;
+        block-size: auto !important;
+        max-block-size: none !important;
+        object-fit: contain !important;
+    }
+}
+
+/* =========================================================================
+      COMPONENTS - Body
+      ========================================================================== */
+
+.chat-message__body {
+    flex: 1;
+    padding: var(--space-lg);
+    overflow: hidden;
+    overflow-x: hidden;
+
+    &>span {
+        display: block;
+        overflow: hidden;
+    }
+
+    &>span>table {
+        display: block;
+        overflow-x: auto;
+    }
+
+    & [data-id] {
+        font-size: initial;
+        line-height: normal;
+    }
+
+    /* Generic textarea styling inside message body */
+    :where(textarea) {
+        max-block-size: var(--max-height-edit) !important;
+        padding-inline-end: var(--space-lg) !important;
+        overflow-y: auto !important;
+        border-radius: var(--radius) !important;
+        font-family: var(--font-code) !important;
+        font-size: var(--font-size-edit) !important;
+        line-height: var(--line-height-normal) !important;
+        letter-spacing: var(--letter-spacing-body) !important;
+    }
+}
+
+/* =========================================================================
+      CONTENT - Typography
+      ========================================================================== */
+
+.chat-message__body>span {
+
+    /* ----- Headings -----
+        * !important on font-family: RisuAI .chattext applies its own font
+        *
+        * Vertical rhythm - decreasing margins for decreasing importance:
+        *   h1: 35/20px - Major breaks, chapter-level
+        *   h2: 28/16px - Section breaks
+        *   h3: 24/14px - Subsection
+        *   h4: 22/12px - Topic change
+        *   h5: 20/10px - Minor break
+        *   h6: 18/10px - Minimal break
+        */
+    &> :is(h1, h2, h3, h4, h5, h6) {
+        font-family: var(--font-heading) !important;
+        font-weight: 900;
+        line-height: var(--line-height-normal);
+        color: var(--on-surface);
+        padding-inline-start: 0;
+        padding-inline-end: 0;
+        border-radius: var(--radius);
+        transition: var(--trans-color), var(--trans-text-hover), padding-inline-end var(--anim-fast) ease;
+
+        &:hover {
+            background: var(--interactive-subtle);
+            padding-inline-start: var(--hover-padding);
+            padding-inline-end: var(--hover-padding);
+        }
+
+        & * {
+            font-family: inherit;
+        }
+    }
+
+    &>h1 {
+        position: relative;
+        margin-block: var(--heading-margin-h1);
+        padding-block-end: var(--space-lg);
+        font-size: calc(1em * var(--scale-up-4));
+        letter-spacing: var(--letter-spacing-heading);
+
+        &::before {
+            margin-inline-end: var(--space-md);
+            color: var(--color-primary);
+            content: '# ';
+        }
+
+        &::after {
+            position: absolute;
+            inset-block-end: 0;
+            inset-inline: 0;
+            block-size: var(--space-2xs);
+            background: var(--gradient-hr);
+            opacity: var(--hover-opacity);
+            content: '';
+            transition: var(--trans-fade-lift);
+        }
+
+        &:hover::after {
+            opacity: 1;
+            transform: translate(var(--hover-padding), var(--hover-shift-y));
+        }
+    }
+
+    &> :is(h2, h3, h4, h5, h6) {
+        letter-spacing: var(--letter-spacing-body);
+    }
+
+    &>h2 {
+        margin-block: var(--heading-margin-h2);
+        font-size: calc(1em * var(--scale-up-3));
+
+        &::before {
+            margin-inline-end: var(--space-sm);
+            color: var(--color-primary);
+            content: '## ';
+        }
+    }
+
+    &>h3 {
+        margin-block: var(--heading-margin-h3);
+        font-size: calc(1em * var(--scale-up-2));
+
+        &::before {
+            margin-inline-end: var(--space-xs);
+            color: var(--color-primary-light);
+            content: '### ';
+        }
+    }
+
+    &>h4 {
+        margin-block: var(--heading-margin-h4);
+        font-size: calc(1em * var(--scale-up-1));
+    }
+
+    &>h5 {
+        margin-block: var(--heading-margin-h5);
+        font-size: 1em;
+        font-weight: 500;
+    }
+
+    &>h6 {
+        margin-block: var(--heading-margin-h6);
+        font-size: 1em;
+        font-weight: 400;
+    }
+
+    /* ----- Paragraphs & Lists ----- */
+    &> :is(p, ul, ol) {
+        margin-block: var(--space-xl);
+        font-size: var(--font-size-body);
+        line-height: var(--line-height-relaxed);
+        letter-spacing: var(--letter-spacing-body);
+        color: var(--on-surface);
+        word-break: keep-all;
+        overflow-wrap: break-word;
+    }
+
+    &> :is(ul, ol) {
+        line-height: var(--line-height-normal);
+    }
+
+    &>p {
+        margin-block-end: var(--space-2xl);
+        padding-inline-start: 0;
+        padding-inline-end: 0;
+        border-radius: var(--radius);
+        transition: var(--trans-text-hover), padding-inline-end var(--anim-fast) ease;
+
+        &:hover:not(:has(:hover)) {
+            background: var(--interactive-subtle);
+            padding-inline-start: var(--hover-padding);
+            padding-inline-end: var(--hover-padding);
+        }
+    }
+
+    &>hr {
+        block-size: var(--space-2xs);
+        margin-block: var(--space-3xl);
+        background: var(--gradient-hr);
+        border: none;
+        opacity: var(--hover-opacity);
+        transition: var(--trans-fade-lift);
+
+        &:hover {
+            opacity: 1;
+            transform: translate(var(--hover-padding), var(--hover-shift-y));
+        }
+    }
+
+    /* ----- Inline text ----- */
+    & a {
+        color: var(--color-link);
+        text-decoration: underline;
+        text-decoration-thickness: var(--underline-thickness);
+        text-underline-offset: var(--underline-offset);
+        transition: var(--trans-color), text-decoration-thickness var(--anim-fast) ease, text-underline-offset var(--anim-fast) ease;
+
+        &:hover {
+            color: var(--color-link-hover);
+            text-decoration-thickness: var(--underline-thickness-hover);
+            text-underline-offset: var(--underline-offset-hover);
+        }
+
+        &:focus-visible {
+            outline-offset: var(--focus-offset-lg);
+            border-radius: var(--radius-sm);
+        }
+    }
+
+    & em {
+        text-decoration: underline;
+        text-underline-offset: var(--space-2xs);
+        text-decoration-color: var(--outline-variant);
+        color: inherit;
+    }
+
+    & strong {
+        padding-inline: var(--space-2xs);
+        background: var(--gradient-highlight);
+        color: inherit;
+    }
+
+    :is(& strong em, & em strong) {
+        padding-inline: var(--space-2xs);
+        background: var(--gradient-highlight);
+        text-decoration: underline;
+        text-underline-offset: var(--space-2xs);
+        text-decoration-color: var(--color-primary);
+        color: inherit;
+    }
+
+    & :is(s, del, strike) {
+        opacity: var(--hover-opacity);
+        color: inherit;
+    }
+
+    /* ----- Lists ----- */
+    &> :is(ul, ol) {
+        padding-inline-start: var(--space-3xl);
+
+        & :is(ul, ol) {
+            margin-block: var(--space-sm);
+            padding-inline-start: var(--space-2xl);
+        }
+    }
+
+    /* Numbered lists need more space for multi-digit markers (100+) */
+    &>ol {
+        padding-inline-start: 2.5em;
+    }
+
+    & li {
+        margin-block-end: var(--space-sm);
+        padding-inline-start: var(--space-sm);
+        padding-inline-end: 0;
+        color: var(--on-surface);
+        border-radius: var(--radius);
+        transition: var(--trans-text-hover), padding-inline-end var(--anim-fast) ease;
+
+        &:hover {
+            background: var(--interactive-subtle);
+            padding-inline-start: var(--hover-padding);
+            padding-inline-end: var(--hover-padding);
+        }
+    }
+
+    &> :is(ul, ol) li::marker {
+        color: var(--color-primary);
+    }
+
+    &>ol li::marker {
+        font-weight: 600;
+    }
+}
+
+/* =========================================================================
+      CONTENT - Block elements (shared pattern)
+      ========================================================================== */
+
+/* Block Element Architecture
+    * --------------------------
+    * All block elements (blockquote, pre, details, quote marks) share:
+    *   - Left border accent (4px colored, 1px elsewhere)
+    *   - Subtle background differentiation
+    *   - Horizontal slide on hover
+    *   - Consistent padding via --block-padding-*
+    *
+    * This creates visual consistency while allowing color differentiation:
+    *   - blockquote: --color-primary (gold)
+    *   - pre/code:   --color-code (red)
+    *   - details:    --outline (neutral)
+    *   - quote1:     --color-quote1 (blue) - character dialogue
+    *   - quote2:     --color-quote2 (green) - narrator/action
+    */
+
+.chat-message__body>span {
+
+    /* Shared block styles - DRY pattern for all block-level containers */
+    &> :is(blockquote, pre, details),
+    &>blockquote blockquote,
+    & li blockquote,
+    &>p> :is([risu-mark="quote1"], [risu-mark="quote2"]),
+    &>details pre {
+        margin-block: var(--space-xl);
+        margin-inline-start: 0;
+        padding: var(--block-padding-block) var(--block-padding-inline);
+        inline-size: fit-content;
+        max-inline-size: 100%;
+        background: var(--surface-variant);
+        border: var(--border-thin) solid var(--outline);
+        border-inline-start-width: var(--border-emphasis);
+        border-radius: var(--radius);
+        transition: var(--trans-block-hover), margin-inline-start var(--anim-fast) ease;
+
+        &:hover {
+            background: var(--interactive-subtle);
+            margin-inline-start: var(--hover-shift-x);
+        }
+    }
+
+    /* ----- Blockquotes -----
+        * Uses monospace font for distinction from body text
+        * !important on font: RisuAI .chattext applies serif/sans font
+        * !important on font-style: prevents browser default italic for <blockquote>
+        * quotes: none prevents browser-generated quotation marks */
+    &>blockquote,
+    &>blockquote blockquote,
+    & li blockquote {
+        border-inline-start-color: var(--color-primary);
+        quotes: none;
+        font-family: var(--font-code) !important;
+        font-style: normal !important;
+        font-size: var(--font-size-body);
+        line-height: var(--line-height-relaxed);
+        letter-spacing: var(--letter-spacing-body);
+
+        & * {
+            font-family: inherit !important;
+            font-style: inherit !important;
+        }
+
+        & p {
+            color: var(--risu-text);
+            margin-block-end: var(--space-xl);
+            letter-spacing: var(--letter-spacing-body);
+
+            &:last-child {
+                margin-block-end: 0;
+            }
+        }
+    }
+
+    /* Quote marks - RISUAI-DEPENDENT (LOW): custom data attributes
+        * RisuAI adds [risu-mark] attributes to spans for dialogue styling
+        * [risu-mark="quote1"]: Character speech (blue, italic)
+        * [risu-mark="quote2"]: Narrator/action text (green)
+        * display: block makes them full-width for border accent to show */
+    &>p> :is([risu-mark="quote1"], [risu-mark="quote2"]) {
+        display: block;
+        font-size: var(--font-size-body);
+        line-height: var(--line-height-relaxed);
+    }
+
+    /* !important on font-style: override inherited normal from blockquote */
+    &>p>[risu-mark="quote1"] {
+        color: var(--color-quote1);
+        border-inline-start-color: var(--color-quote1);
+        font-style: italic !important;
+    }
+
+    &>p>[risu-mark="quote2"] {
+        color: var(--color-quote2);
+        border-inline-start-color: var(--color-quote2);
+    }
+
+    /* Inline quote marks - when not wrapped in <p>, just color them
+        * (no block styling since they're inline) */
+    & [risu-mark="quote1"]:not(p > *) {
+        color: var(--color-quote1);
+    }
+
+    & [risu-mark="quote2"]:not(p > *) {
+        color: var(--color-quote2);
+    }
+
+    /* ----- Code -----
+        * letter-spacing: 0 resets body's 0.04em for monospace legibility */
+    & :is(code, pre) {
+        font-family: var(--font-code);
+        letter-spacing: 0;
+    }
+
+    /* Inline code - distinct red color, subtle hover effect */
+    & code {
+        padding: var(--space-2xs) var(--space-xs);
+        background: var(--code-bg);
+        color: var(--color-code);
+        border-radius: var(--radius);
+        transition: var(--trans-code-hover);
+
+        &:hover {
+            background: var(--interactive);
+            transform: scale(var(--hover-scale-weak));
+            box-shadow: 0 0 0 1px rgb(from var(--color-code) r g b / var(--alpha-medium));
+        }
+    }
+
+    /* Code blocks - reset inline code styles for <code> inside <pre>
+        * overflow-x: auto allows horizontal scroll for long lines */
+    &>pre,
+    &>details pre {
+        border-inline-start-color: var(--color-code);
+        overflow-x: auto;
+        font-size: var(--font-size-secondary);
+        line-height: var(--line-height-normal);
+
+        /* Nested code inside pre - remove inline code styling */
+        & code {
+            padding: 0;
+            background: none;
+            color: var(--risu-text);
+
+            &:hover {
+                background: none;
+                transform: none;
+                box-shadow: none;
+            }
+        }
+    }
+
+    /* Keyboard keys - styled like physical keycaps */
+    & kbd {
+        display: inline-block;
+        padding: var(--kbd-padding-block) var(--kbd-padding-inline);
+        background: var(--code-bg);
+        border: var(--border-thin) solid var(--outline);
+        border-radius: var(--radius);
+        font-family: var(--font-code);
+        font-size: var(--font-size-small);
+        font-weight: 600;
+        color: var(--on-surface);
+        transition: var(--trans-kbd-hover);
+
+        &:hover {
+            background: var(--interactive);
+            border-color: var(--outline-variant);
+            transform: translateY(var(--hover-shift-y));
+        }
+    }
+
+    /* Secondary typography - smaller/tighter than body text
+        * Applied to: code in body, pre blocks, tables, details content, nested quotes
+        * Rationale: these elements contain dense/technical content
+        * Note: code uses :where() for 0 specificity - allows context override */
+    & :where(code) {
+        font-size: calc(1em * var(--scale-down-1));
+    }
+
+    & :is(> pre, > details pre
+
+        /* code blocks */
+    ) {
+        font-size: var(--font-size-secondary);
+    }
+
+    & :is(> table, > details table,
+        /* tables */
+        > details > summary,
+        /* collapsible headers */
+        > details p,
+        /* details body text */
+        > blockquote li,
+        /* nested list in quotes */
+        li blockquote p
+
+        /* quote inside list */
+    ) {
+        font-size: calc(1em * var(--scale-down-2));
+    }
+
+    /* Tighter line-height for dense content */
+    & :is(> table, > details table,
+        > details p, > details pre,
+        > blockquote li, li blockquote p) {
+        line-height: var(--line-height-normal);
+    }
+
+    /* ----- Details/Summary -----
+        * Collapsible sections with custom toggle indicator
+        * Uses neutral border (--outline) to not compete with code/quote colors
+        * list-style: none + custom ::before creates consistent cross-browser arrow */
+    &>details {
+        border-inline-start-color: var(--outline);
+        font-size: var(--font-size-secondary);
+        line-height: var(--line-height-normal);
+        color: var(--on-surface);
+
+        /* Summary acts as clickable header
+            * padding-inline-start makes room for the > indicator */
+        &>summary {
+            position: relative;
+            padding-inline-start: var(--space-xl);
+            list-style: none;
+            font-family: var(--font-ui);
+            font-weight: 700;
+            line-height: var(--line-height-tight);
+            color: var(--on-surface);
+            cursor: pointer;
+            user-select: none;
+            transition: var(--trans-color);
+
+            &:hover {
+                color: var(--color-primary-light);
+            }
+
+            /* Custom > indicator - rotates 90° when open */
+            &::before {
+                position: absolute;
+                inset-inline-start: 0;
+                font-family: var(--font-code);
+                content: '>';
+                transition: transform var(--anim-fast) ease-in-out;
+                /* ease-in-out: smoother rotation */
+            }
+
+            /* Hide default disclosure triangle (Safari/Chrome) */
+            &::-webkit-details-marker {
+                display: none;
+            }
+        }
+
+        &[open]>summary {
+            margin-block-end: var(--space-md);
+
+            &::before {
+                transform: rotate(90deg);
+            }
+        }
+
+        & p {
+            margin-block-end: var(--space-sm);
+            letter-spacing: var(--letter-spacing-body);
+
+            &:last-child {
+                margin-block-end: 0;
+            }
+        }
+
+        & code {
+            font-size: calc(var(--scale-nested-code) * 1em) !important;
+        }
+    }
+
+    /* ----- Tables -----
+        * border-collapse: separate allows individual cell border-radius
+        * border-spacing: 0 removes gaps while keeping separate mode
+        * !important on font: RisuAI applies its own font to table content */
+    &>table {
+        margin-block: var(--space-xl);
+        margin-inline-start: 0;
+        inline-size: fit-content;
+        max-inline-size: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: var(--font-size-small);
+        letter-spacing: var(--letter-spacing-body);
+        font-family: var(--font-quote) !important;
+        transition: margin-inline-start var(--anim-fast) ease;
+
+        & * {
+            font-family: inherit !important;
+        }
+
+        & code {
+            font-size: calc(var(--scale-nested-code) * 1em) !important;
+        }
+
+        &:hover {
+            margin-inline-start: var(--hover-shift-x);
+        }
+    }
+
+    & :is(th, td) {
+        padding: var(--table-padding-block) var(--table-padding-inline);
+        border: var(--border-thin) solid var(--outline);
+        line-height: var(--line-height-tight);
+        color: var(--on-surface);
+    }
+
+    & th {
+        background: var(--surface-elevated);
+    }
+
+    /* Table corner rounding
+        * Tables use border-collapse: separate, so we round individual cells
+        * Pattern: first-row corners (top), last-row corners (bottom)
+        *
+        *   ┌──────┬──────┐  ← top-left (start-start), top-right (start-end)
+        *   │  th  │  th  │
+        *   ├──────┼──────┤
+        *   │  td  │  td  │
+        *   └──────┴──────┘  ← bottom-left (end-start), bottom-right (end-end)
+        */
+    /* Top corners - first row (thead or tbody) */
+    :is(& thead, & tbody) tr:first-child :is(th, td):first-child {
+        border-start-start-radius: var(--radius);
+    }
+
+    :is(& thead, & tbody) tr:first-child :is(th, td):last-child {
+        border-start-end-radius: var(--radius);
+    }
+
+    /* Bottom corners - last row of tbody */
+    & tbody tr:last-child td:first-child {
+        border-end-start-radius: var(--radius);
+    }
+
+    & tbody tr:last-child td:last-child {
+        border-end-end-radius: var(--radius);
+    }
+
+    & tr {
+        transition: var(--trans-bg);
+
+        &:hover {
+            background: var(--interactive-subtle);
+        }
+    }
+
+    &>details table {
+        margin-block: var(--space-xl);
+        inline-size: fit-content;
+        max-inline-size: 100%;
+    }
+
+    /* ----- Images -----
+        * Compact by default (250px max height), expands on hover
+        * object-position: center 20% favors face/upper portion in portraits
+        * Hover expands to 150vh or 1600px (whichever is smaller)
+        * inline-size shrinks on hover to create "zooming in" illusion */
+    & img {
+        display: block;
+        inline-size: var(--img-width);
+        max-inline-size: var(--max-width);
+        block-size: auto;
+        max-block-size: var(--img-collapsed-height);
+        margin: var(--space-xl) auto 0;
+        background: transparent;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        object-fit: cover;
+        object-position: center 20%;
+        cursor: pointer;
+        transition: max-block-size var(--anim-slow) ease, inline-size var(--anim-slow) ease, var(--trans-shadow);
+
+        &:hover {
+            inline-size: var(--img-hover-width);
+            max-block-size: min(var(--img-expanded-height), var(--img-expanded-vh));
+            box-shadow: var(--shadow-xl);
+        }
+    }
+}
+
+/* =========================================================================
+      CONTENT - Syntax highlighting
+      ========================================================================== */
+
+.chat-message--ebook-theme {
+    & .hljs-string {
+        color: var(--syntax-string);
+    }
+
+    & .hljs-keyword {
+        color: var(--syntax-keyword);
+    }
+
+    & :is(.hljs-title, .hljs-function_) {
+        color: var(--syntax-function);
+    }
+
+    & :is(.hljs-built_in, .hljs-name) {
+        color: var(--syntax-builtin);
+    }
+
+    & :is(.hljs-number, .hljs-literal) {
+        color: var(--syntax-number);
+    }
+
+    & :is(.hljs-params, .hljs-variable, .hljs-comment) {
+        color: var(--on-surface);
+        opacity: var(--hover-opacity);
+    }
+
+    & .hljs-subst {
+        color: var(--syntax-subst);
+    }
+}
+
+/* =========================================================================
+      OVERRIDES - RisuAI layout
+      ========================================================================== */
+
+/* RISUAI-DEPENDENT SECTION
+    * ========================
+    * These selectors target RisuAI's internal Tailwind class names.
+    * They may break when RisuAI updates its UI.
+    *
+    * Fragility levels:
+    *   LOW    - Semantic classes unlikely to change (.chat-message-container)
+    *   MEDIUM - Tailwind utility combos (.flex.max-w-full.justify-center)
+    *   HIGH   - Generated or minified classes (none currently)
+    *
+    * If styles break after RisuAI update:
+    *   1. Inspect the new DOM structure
+    *   2. Find equivalent selectors
+    *   3. Update here with new class names
+    */
+
+/* RISUAI-DEPENDENT (LOW): Width normalization
+    * Forces full width on chat containers that RisuAI constrains */
+:is(.flexium.items-center.chat-width,
+    div:has(> .chat-message--ebook-theme),
+    .chat-message--ebook-theme,
+    .chat-message__avatar > *) {
+    inline-size: 100%;
+}
+
+/* RISUAI-DEPENDENT (MEDIUM): Chat toolbar layout */
+.flexium.items-center.chat-width {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+/* RISUAI-DEPENDENT (LOW): Chat scroll container
+    * overflow: overlay makes scrollbar float over content */
+.default-chat-screen {
+    overflow-y: overlay;
+    scrollbar-gutter: auto;
+}
+
+.default-chat-screen::-webkit-scrollbar {
+    inline-size: var(--scrollbar-width-chat);
+}
+
+.default-chat-screen::-webkit-scrollbar-track {
+    background: color-mix(in srgb, var(--risu-theme-bgcolor) 50%, transparent);
+    border-radius: var(--radius-lg);
+}
+
+.default-chat-screen::-webkit-scrollbar-thumb {
+    min-block-size: var(--scrollbar-thumb-min-height);
+    border: var(--border-medium) solid var(--risu-theme-darkborderc);
+    border-radius: var(--radius-lg);
+    background: color-mix(in srgb, var(--risu-theme-darkbg) 70%, transparent);
+    background-clip: padding-box;
+}
+
+.default-chat-screen::-webkit-scrollbar-thumb:hover {
+    border-color: var(--primitive-primary);
+    background: var(--risu-theme-bgcolor);
+    background-clip: padding-box;
+}
+
+/* RISUAI-DEPENDENT (LOW): Message container spacing */
+.chat-message-container {
+    margin: var(--space-md);
+    margin-block-end: var(--chat-input-gap);
+    padding-block-start: var(--clamp-xs);
+    border-block-start: var(--border-thin) solid rgb(from var(--risu-text) r g b / var(--alpha-subtle));
+    border-radius: var(--radius);
+}
+
+/* RISUAI-DEPENDENT (MEDIUM): Main chat column centering
+    * .risu-chat is the primary chat content wrapper */
+.flex.max-w-full.justify-center.risu-chat {
+    inline-size: 100%;
+    max-inline-size: var(--max-width);
+    margin-inline: auto;
+    padding-inline: var(--clamp-md);
+    box-sizing: border-box;
+
+    &>.text-textcolor {
+        margin-inline: var(--clamp-sm);
+        padding-inline: var(--clamp-sm);
+        padding-block-end: var(--chat-input-gap);
+    }
+}
+
+/* RISUAI-DEPENDENT (MEDIUM): Novel AI mode layout */
+.x-risu-lb-nai-column {
+    margin-inline: auto;
+}
+
+/* Message edit textarea - consolidated styles */
+:where(textarea.message-edit-area) {
+    inline-size: 100% !important;
+    max-block-size: var(--max-height-edit) !important;
+    margin-inline: auto !important;
+    padding-inline-end: var(--space-lg) !important;
+    overflow-y: auto !important;
+    border: var(--border-thin) solid var(--risu-theme-darkborderc) !important;
+    border-radius: var(--radius) !important;
+    box-shadow: var(--shadow-sm) !important;
+    outline: none !important;
+    /* Typography */
+    font-family: var(--font-code) !important;
+    font-size: var(--font-size-edit) !important;
+    line-height: var(--line-height-normal) !important;
+    letter-spacing: var(--letter-spacing-body) !important;
+    transition: border-color 0.25s ease, transform 0.2s ease, box-shadow 0.2s ease !important;
+
+    &:hover {
+        border-color: var(--primitive-primary) !important;
+        transform: translateY(-4px) !important;
+        box-shadow: var(--shadow-lg) !important;
+    }
+
+    &:focus {
+        border-color: var(--risu-text) !important;
+        transform: translateY(-4px) !important;
+        box-shadow: var(--shadow-lg) !important;
+        outline: none !important;
+    }
+}
+
+/* RISUAI-DEPENDENT (MEDIUM): Height constraint for modals/panels */
+:where(div.h-48) {
+    max-block-size: var(--max-height-panel);
+}
+
+/* RISUAI-DEPENDENT (LOW): Custom heading classes
+    * RisuAI uses x-risu-nw-heading-* for novel-writer mode headings
+    * !important overrides inline font-size set by RisuAI */
+.chattext .x-risu-nw-heading-1 {
+    font-size: calc(1em * var(--scale-up-4)) !important;
+}
+
+.chattext .x-risu-nw-heading-2 {
+    font-size: calc(1em * var(--scale-up-3)) !important;
+}
+
+.chattext .x-risu-nw-heading-3 {
+    font-size: calc(1em * var(--scale-up-2)) !important;
+}
+
+.chattext .x-risu-nw-heading-4 {
+    font-size: calc(1em * var(--scale-up-1)) !important;
+}
+
+.chattext .x-risu-nw-heading-5 {
+    font-size: 1em !important;
+}
+
+.chattext .x-risu-nw-heading-6 {
+    font-size: 1em !important;
+}
+
+/* Background dim overlay - optional darkening over background image
+    * Controlled by --bg-dim-opacity (0=off, 0.8=dark, 1=black)
+    * !important needed: RisuAI sets inline style */
+div.h-full.w-full>div.w-full.h-full.relative {
+    background-color: rgb(0 0 0 / var(--bg-dim-opacity)) !important;
+}
+
+/* View transitions - smooth message appearance/disappearance
+    * Uses CSS View Transitions API for native-like animations */
+::view-transition-old(chat-message),
+::view-transition-new(chat-message) {
+    animation-duration: var(--anim-normal);
+}
+
+/* =========================================================================
+      INPUT AREA - Bottom input controls
+      ========================================================================== */
+
+/* INPUT AREA ARCHITECTURE
+    * -----------------------
+    * The bottom input area consists of:
+    *   1. Main input container (sticky at bottom)
+    *   2. Textarea for message input
+    *   3. Send/attach buttons
+    *   4. Translation input (optional, above main input)
+    *
+    * !important Usage Rationale:
+    * RisuAI applies inline styles and high-specificity Tailwind classes
+    * to input elements. Without !important, our styles are overridden.
+    * This is the only reliable way to customize this area.
+    *
+    * All selectors here are RISUAI-DEPENDENT (MEDIUM-HIGH fragility)
+    * because they rely on Tailwind utility class combinations.
+    */
+
+/* RISUAI-DEPENDENT (HIGH): Main input container
+    * Selector: .sticky.pt-2.pb-2.right-0.bottom-0.bg-bgcolor
+    * This long Tailwind combo is fragile but necessary
+    * Note: Svelte class required for transition override
+    *
+    * BACKDROP-FILTER ARCHITECTURE:
+    * Parent has NO backdrop-filter (browser limitation: parent+child both having
+    * backdrop-filter causes child's to be ignored). Instead, ::after pseudo-element
+    * covers entire parent + extends as tail, handling ALL blur in one layer.
+    */
+.sticky.pt-2.pb-2.right-0.bottom-0.bg-bgcolor.svelte-vtw7ku {
+    transition: border-color 0.25s ease, transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.sticky.pt-2.pb-2.right-0.bottom-0.bg-bgcolor {
+    anchor-name: --input-area !important;
+    /* Parent is transparent - ::after handles background + blur */
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: none !important;
+    border-radius: var(--radius) var(--radius) 0 0 !important;
+    padding: 0 !important;
+
+    /* Match chat message margin (--space-md on each side) */
+    inline-size: calc(100% - var(--space-md) * 2) !important;
+    max-inline-size: var(--max-width) !important;
+    margin-inline: auto !important;
+    box-sizing: border-box !important;
+
+    /* Stick to bottom edge */
+    bottom: 0 !important;
+
+    /* Keep default stretch alignment for buttons to match textarea height */
+    align-items: stretch !important;
+
+    /* Shadow on parent for proper layering */
+    box-shadow: var(--shadow-sm) !important;
+
+    /* ::after covers entire input + tail, handles ALL blur
+        * This solves the backdrop-filter parent/child conflict */
+    &::after {
+        content: '' !important;
+        position: absolute !important;
+        inset: 0 !important;
+        bottom: calc(-1 * var(--input-tail-extend)) !important;
+        z-index: -1 !important;
+        background: color-mix(in srgb, var(--risu-theme-bgcolor) 65%, transparent) !important;
+        backdrop-filter: blur(var(--blur-header)) !important;
+        -webkit-backdrop-filter: blur(var(--blur-header)) !important;
+        border: var(--border-thin) solid var(--risu-theme-darkborderc) !important;
+        border-radius: var(--radius) var(--radius) 0 0 !important;
+        transition: bottom 0.2s ease, border-color 0.25s ease !important;
+    }
+
+    /* Hover/focus feedback - lift up and border brightens */
+    &:hover {
+        transform: translateY(var(--hover-lift-input)) !important;
+        box-shadow: var(--shadow-lg) !important;
+    }
+
+    &:hover::after {
+        bottom: calc(-1 * var(--input-tail-extend) + var(--hover-lift-input)) !important;
+        border-color: var(--primitive-primary) !important;
+    }
+
+    &:focus-within::after {
+        border-color: var(--risu-text) !important;
+    }
+}
+
+/* Synchronized hover - both inputs lift together */
+.default-chat-screen:has(.sticky.pt-2.pb-2:hover) .flex.items-center.mt-2.mb-2,
+.default-chat-screen:has(.flex.items-center.mt-2.mb-2:hover) .sticky.pt-2.pb-2 {
+    transform: translateY(var(--hover-lift-input)) !important;
+    box-shadow: var(--shadow-lg) !important;
+}
+
+.default-chat-screen:has(.sticky.pt-2.pb-2:hover) .flex.items-center.mt-2.mb-2::after,
+.default-chat-screen:has(.flex.items-center.mt-2.mb-2:hover) .sticky.pt-2.pb-2::after {
+    bottom: calc(-1 * var(--input-tail-extend) + var(--hover-lift-input)) !important;
+    border-color: var(--primitive-primary) !important;
+}
+
+/* RISUAI-DEPENDENT (MEDIUM): Main input textarea
+    * .peer class is Tailwind's sibling selector utility
+    * border-*-end-radius: 0 creates seamless join with adjacent buttons */
+textarea.peer.text-input-area {
+    border-color: var(--risu-theme-darkborderc) !important;
+    color: var(--risu-theme-textcolor) !important;
+    transition: border-color var(--anim-fast) ease !important;
+
+    /* Left corners match container, right corners 0 for seamless button join */
+    border-radius: var(--radius) 0 0 var(--radius) !important;
+    border-width: 0 !important;
+    outline: none !important;
+
+    /* Match edit textarea font and size */
+    font-family: var(--font-code) !important;
+    font-size: var(--font-size-edit) !important;
+    line-height: var(--line-height-normal) !important;
+    letter-spacing: var(--letter-spacing-body) !important;
+
+    /* Limit height to 50vh and add scroll for long messages */
+    max-block-size: var(--max-height-input) !important;
+    overflow-y: auto !important;
+
+    /* Increase height with padding */
+    padding-block: var(--input-padding-block) !important;
+}
+
+/* RISUAI-DEPENDENT (MEDIUM): Send & attach buttons
+    * Transparent background for glass effect
+    * Note: Svelte class required for transition override */
+.sticky button:is(.button-icon-send, [class*="peer-focus"]).svelte-vtw7ku {
+    transition: transform 0.15s ease, opacity 0.15s ease, color 0.25s ease !important;
+}
+
+.sticky button:is(.button-icon-send, [class*="peer-focus"]) {
+    color: var(--risu-theme-textcolor2) !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+
+    /* Match textarea height with same max limit */
+    align-self: stretch !important;
+    max-block-size: var(--max-height-input) !important;
+
+    /* Match toolbar button hover - color change only, no button scale */
+    &:hover {
+        /* color-mix matches toolbar's --color-primary */
+        color: var(--color-primary) !important;
+        opacity: var(--hover-opacity);
+    }
+
+    /* Match toolbar icon size - scale icon on hover, not button */
+    & svg {
+        inline-size: var(--icon-size) !important;
+        block-size: var(--icon-size) !important;
+    }
+}
+
+.sticky button:is(.button-icon-send, [class*="peer-focus"]).svelte-vtw7ku svg {
+    transition: transform 0.15s ease !important;
+}
+
+.sticky button:is(.button-icon-send, [class*="peer-focus"]):hover svg {
+    transform: scale(var(--hover-scale-strong));
+}
+
+.sticky button:is(.button-icon-send, [class*="peer-focus"]):active svg {
+    transform: scale(var(--hover-scale-pressed));
+}
+
+/* RISUAI-DEPENDENT (HIGH): Last button (hamburger) right corners */
+.sticky button.peer-focus\:border-textcolor {
+    margin-right: 0 !important;
+    border-radius: 0 var(--radius) 0 0 !important;
+}
+
+
+/* RISUAI-DEPENDENT (MEDIUM): Translation input area
+    * Optional secondary input that appears above main input
+    * Uses sticky positioning to stay visible while scrolling
+    * Styled consistently with main input container
+    * Note: Svelte class required for transition override */
+.flex.items-center.mt-2.mb-2.svelte-vtw7ku {
+    transition: border-color 0.25s ease, transform 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.flex.items-center.mt-2.mb-2 {
+    background: color-mix(in srgb, var(--risu-theme-bgcolor) 65%, transparent) !important;
+    backdrop-filter: blur(var(--blur-header)) !important;
+    -webkit-backdrop-filter: blur(var(--blur-header)) !important;
+    border: var(--border-thin) solid var(--risu-theme-darkborderc) !important;
+    border-radius: var(--radius) !important;
+    padding: 0 !important;
+
+    /* Match chat message margin (--space-md on each side) */
+    inline-size: calc(100% - var(--space-md) * 2) !important;
+    max-inline-size: var(--max-width) !important;
+    margin-inline: auto !important;
+    box-sizing: border-box !important;
+
+    /* Consistent spacing - account for message container margin */
+    margin-block-start: var(--chat-input-gap) !important;
+    margin-block-end: var(--chat-input-gap) !important;
+
+    /* Sticky positioning - stay above main input */
+    position: sticky !important;
+    bottom: var(--input-area-gap) !important;
+    z-index: var(--z-overlay) !important;
+
+    /* Shadow matching chat message */
+    box-shadow: var(--shadow-sm) !important;
+
+    /* Hover/focus feedback - lift up and border brightens */
+    &:hover {
+        border-color: var(--primitive-primary) !important;
+        transform: translateY(var(--hover-lift-input)) !important;
+        box-shadow: var(--shadow-lg) !important;
+    }
+
+    &:has(textarea:focus) {
+        border-color: var(--risu-text) !important;
+    }
+
+    & textarea {
+        color: var(--risu-theme-textcolor) !important;
+        background: transparent !important;
+        border: none !important;
+        border-radius: var(--radius) !important;
+        outline: none !important;
+        flex-grow: 1 !important;
+        margin-inline-start: 0 !important;
+
+        /* Match edit textarea font and size */
+        font-family: var(--font-code) !important;
+        font-size: var(--font-size-edit) !important;
+        line-height: var(--line-height-normal) !important;
+        letter-spacing: var(--letter-spacing-body) !important;
+
+        /* Limit height to 50vh and add scroll */
+        max-block-size: var(--max-height-input) !important;
+        overflow-y: auto !important;
+
+        /* Increase height with padding */
+        padding-block: var(--input-padding-block) !important;
+
+        &::placeholder {
+            color: var(--risu-theme-textcolor2) !important;
+        }
+    }
+
+    /* Icon label styling */
+    &>label {
+        display: flex !important;
+        align-items: center !important;
+        padding: var(--space-sm) !important;
+        margin-inline-start: var(--space-xs) !important;
+
+        & svg {
+            inline-size: var(--icon-size) !important;
+            block-size: var(--icon-size) !important;
+            color: var(--risu-theme-textcolor2) !important;
+        }
+    }
+}
+
+/* RISUAI-DEPENDENT (MEDIUM): Sidebar "New Chat" button
+    * Default RisuAI style has jarring green hover that clashes with theme
+    * This replaces green with theme-consistent gold accent */
+.rs-sidebar button.bg-textcolor2.hover\:bg-green-500 {
+    background: var(--risu-theme-darkbutton) !important;
+    color: var(--risu-theme-textcolor) !important;
+    border: var(--border-thin) solid var(--risu-theme-darkborderc) !important;
+    transition: all var(--anim-fast) ease !important;
+
+    &:hover {
+        background: var(--risu-theme-selected) !important;
+        color: var(--primitive-primary) !important;
+        border-color: var(--primitive-primary) !important;
+        transform: translateY(var(--hover-shift-y-sm));
+        box-shadow: var(--shadow-md);
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+}
+
+/* RISUAI-DEPENDENT (MEDIUM): Header context menu popup
+    * The popup that appears when clicking icons in header toolbar */
+.fixed.z-50.bg-darkbg.border-darkborderc {
+    background: color-mix(in srgb, var(--risu-theme-bgcolor) 65%, transparent) !important;
+    backdrop-filter: blur(var(--blur-header)) !important;
+    -webkit-backdrop-filter: blur(var(--blur-header)) !important;
+    border-radius: var(--radius-lg) !important;
+    box-shadow: var(--shadow-xl) !important;
+}
+
+/* RISUAI-DEPENDENT (MEDIUM): Hamburger menu popup
+    * The popup that appears when clicking the hamburger button in input area
+    * Uses CSS anchor positioning to center on screen, aligned with input area */
+.fixed.right-2.bottom-16.bg-darkbg {
+    z-index: var(--z-modal) !important;
+    position-anchor: --input-area !important;
+    right: auto !important;
+    left: auto !important;
+    bottom: auto !important;
+    top: 50% !important;
+    justify-self: anchor-center !important;
+    transform: translateY(-50%) !important;
+    max-block-size: 70vh !important;
+    overflow-y: auto !important;
+    background: color-mix(in srgb, var(--risu-theme-bgcolor) 65%, transparent) !important;
+    backdrop-filter: blur(var(--blur-header)) !important;
+    -webkit-backdrop-filter: blur(var(--blur-header)) !important;
+    border: var(--border-thin) solid var(--risu-theme-borderc) !important;
+    border-radius: var(--radius-lg) !important;
+    box-shadow: var(--shadow-xl) !important;
+}
