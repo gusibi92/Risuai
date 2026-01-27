@@ -950,3 +950,145 @@
         display: block !important;
     }
 }
+
+/* ============================================
+   15. 테마리스 스타일 입력창 (Themalis Input Area)
+   ============================================ */
+
+/* 메인 입력창 컨테이너 */
+.sticky.pt-2.pb-2.right-0.bottom-0.bg-bgcolor {
+    transition: border-color var(--input-anim-speed) ease, transform 0.2s ease, box-shadow 0.2s ease !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: none !important;
+    border-radius: var(--input-radius) var(--input-radius) 0 0 !important;
+    padding: 0 !important;
+    inline-size: 95% !important;
+    max-inline-size: var(--input-max-width) !important;
+    margin-inline: auto !important;
+    box-sizing: border-box !important;
+    bottom: 0 !important;
+    align-items: stretch !important;
+    box-shadow: var(--input-shadow) !important;
+    z-index: var(--input-z-index) !important;
+}
+
+/* ::after를 사용하여 배경과 블러 처리 (테마리스 기법) */
+.sticky.pt-2.pb-2.right-0.bottom-0.bg-bgcolor::after {
+    content: '' !important;
+    position: absolute !important;
+    inset: 0 !important;
+    bottom: calc(-1 * var(--input-tail)) !important;
+    z-index: -1 !important;
+    background: rgba(18, 18, 18, 0.7) !important;
+    backdrop-filter: blur(var(--input-blur)) !important;
+    -webkit-backdrop-filter: blur(var(--input-blur)) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: var(--input-radius) var(--input-radius) 0 0 !important;
+    transition: bottom 0.2s ease, border-color 0.25s ease !important;
+}
+
+.sticky.pt-2.pb-2.right-0.bottom-0.bg-bgcolor:hover {
+    transform: translateY(var(--input-lift)) !important;
+    box-shadow: var(--input-shadow-hover) !important;
+}
+
+.sticky.pt-2.pb-2.right-0.bottom-0.bg-bgcolor:hover::after {
+    bottom: calc(-1 * var(--input-tail) + var(--input-lift)) !important;
+    border-color: var(--accent-primary) !important;
+}
+
+.sticky.pt-2.pb-2.right-0.bottom-0.bg-bgcolor:focus-within::after {
+    border-color: var(--accent-primary) !important;
+}
+
+/* 텍스트 입력 영역 */
+textarea.peer.text-input-area {
+    border-color: transparent !important;
+    background: transparent !important;
+    color: var(--text-primary) !important;
+    border-radius: var(--input-radius) 0 0 var(--input-radius) !important;
+    border-width: 0 !important;
+    outline: none !important;
+    font-size: 14px !important;
+    line-height: 1.6 !important;
+    max-block-size: 40vh !important;
+    padding-block: var(--input-padding-y) !important;
+    scrollbar-width: thin;
+}
+
+/* 전송 및 기타 버튼 */
+.sticky button:is(.button-icon-send, [class*="peer-focus"]) {
+    color: var(--text-secondary) !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    align-self: stretch !important;
+    transition: all 0.2s ease !important;
+    padding: 0 12px !important;
+}
+
+.sticky button:is(.button-icon-send, [class*="peer-focus"]):hover {
+    color: var(--accent-primary) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.sticky button:is(.button-icon-send, [class*="peer-focus"]) svg {
+    width: 20px !important;
+    height: 20px !important;
+    transition: transform 0.2s ease !important;
+}
+
+.sticky button:is(.button-icon-send, [class*="peer-focus"]):hover svg {
+    transform: scale(1.15);
+}
+
+/* 마지막 버튼 (햄버거 메뉴) */
+.sticky button.peer-focus\:border-textcolor {
+    margin-right: 0 !important;
+    border-radius: 0 var(--input-radius) 0 0 !important;
+}
+
+/* 번역 입력창 영역 */
+.flex.items-center.mt-2.mb-2 {
+    background: rgba(18, 18, 18, 0.7) !important;
+    backdrop-filter: blur(var(--input-blur)) !important;
+    -webkit-backdrop-filter: blur(var(--input-blur)) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: var(--input-radius) !important;
+    padding: 0 !important;
+    inline-size: 95% !important;
+    max-inline-size: var(--input-max-width) !important;
+    margin-inline: auto !important;
+    box-sizing: border-box !important;
+    position: sticky !important;
+    bottom: 60px !important;
+    z-index: 99 !important;
+    box-shadow: var(--input-shadow) !important;
+    transition: all 0.2s ease !important;
+}
+
+.flex.items-center.mt-2.mb-2:hover {
+    border-color: var(--accent-primary) !important;
+    transform: translateY(var(--input-lift)) !important;
+}
+
+.flex.items-center.mt-2.mb-2 textarea {
+    color: var(--text-primary) !important;
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    padding-block: var(--input-padding-y) !important;
+}
+
+/* 팝업 메뉴 (햄버거 메뉴 및 컨텍스트 메뉴) */
+.fixed.z-50.bg-darkbg.border-darkborderc,
+.fixed.right-2.bottom-16.bg-darkbg {
+    background: rgba(18, 18, 18, 0.85) !important;
+    backdrop-filter: blur(var(--input-blur)) !important;
+    -webkit-backdrop-filter: blur(var(--input-blur)) !important;
+    border-radius: var(--input-radius) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6) !important;
+}
