@@ -75,8 +75,8 @@
     --input-radius: 12px;
     --input-max-width: 1000px;
     --input-blur: 12px;
-    --input-lift: 0px;
-    --input-tail: 0px;
+    --input-lift: -10px;
+    --input-tail: 35px;
     --input-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
     --input-shadow-hover: 0 8px 32px rgba(0, 0, 0, 0.6);
     --input-z-index: 100;
@@ -88,7 +88,7 @@
    2. 기본 레이아웃 (.risu-chat)
    ============================================ */
 .risu-chat>div {
-    padding: 3rem 3rem 0 3rem;
+    padding: 3rem;
     margin: auto;
     display: flex;
     justify-content: center;
@@ -957,34 +957,49 @@
 
 /* 메인 입력창 컨테이너 */
 .sticky.pt-2.pb-2.right-0.bottom-0.bg-bgcolor {
-    --spacing: 0 !important;
-    transition: border-color var(--input-anim-speed) ease, box-shadow 0.2s ease !important;
-    background: rgba(18, 18, 18, 0.85) !important;
-    backdrop-filter: blur(var(--input-blur)) !important;
-    -webkit-backdrop-filter: blur(var(--input-blur)) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-bottom: none !important;
+    transition: border-color var(--input-anim-speed) ease, transform 0.2s ease, box-shadow 0.2s ease !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: none !important;
     border-radius: var(--input-radius) var(--input-radius) 0 0 !important;
     padding: 0 !important;
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-    inline-size: 100% !important;
+    inline-size: 95% !important;
     max-inline-size: var(--input-max-width) !important;
     margin-inline: auto !important;
     box-sizing: border-box !important;
     bottom: 0 !important;
-    margin-bottom: 0 !important;
     align-items: stretch !important;
     box-shadow: var(--input-shadow) !important;
     z-index: var(--input-z-index) !important;
 }
 
-/* hover 시 테두리 색상만 변경 */
+/* ::after를 사용하여 배경과 블러 처리 (테마리스 기법) */
+.sticky.pt-2.pb-2.right-0.bottom-0.bg-bgcolor::after {
+    content: '' !important;
+    position: absolute !important;
+    inset: 0 !important;
+    bottom: calc(-1 * var(--input-tail)) !important;
+    z-index: -1 !important;
+    background: rgba(18, 18, 18, 0.7) !important;
+    backdrop-filter: blur(var(--input-blur)) !important;
+    -webkit-backdrop-filter: blur(var(--input-blur)) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: var(--input-radius) var(--input-radius) 0 0 !important;
+    transition: bottom 0.2s ease, border-color 0.25s ease !important;
+}
+
 .sticky.pt-2.pb-2.right-0.bottom-0.bg-bgcolor:hover {
+    transform: translateY(var(--input-lift)) !important;
+    box-shadow: var(--input-shadow-hover) !important;
+}
+
+.sticky.pt-2.pb-2.right-0.bottom-0.bg-bgcolor:hover::after {
+    bottom: calc(-1 * var(--input-tail) + var(--input-lift)) !important;
     border-color: var(--accent-primary) !important;
 }
 
-.sticky.pt-2.pb-2.right-0.bottom-0.bg-bgcolor:focus-within {
+.sticky.pt-2.pb-2.right-0.bottom-0.bg-bgcolor:focus-within::after {
     border-color: var(--accent-primary) !important;
 }
 
@@ -998,27 +1013,9 @@ textarea.peer.text-input-area {
     outline: none !important;
     font-size: 14px !important;
     line-height: 1.6 !important;
-    max-block-size: 20vh !important;
-    overflow-y: auto !important;
+    max-block-size: 40vh !important;
     padding-block: var(--input-padding-y) !important;
-}
-
-/* 스타레일 테마 맞춤형 스크롤바 */
-textarea.peer.text-input-area::-webkit-scrollbar {
-    width: 6px !important;
-}
-
-textarea.peer.text-input-area::-webkit-scrollbar-track {
-    background: transparent !important;
-}
-
-textarea.peer.text-input-area::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1) !important;
-    border-radius: 10px !important;
-}
-
-textarea.peer.text-input-area::-webkit-scrollbar-thumb:hover {
-    background: var(--accent-primary) !important;
+    scrollbar-width: thin;
 }
 
 /* 전송 및 기타 버튼 */
